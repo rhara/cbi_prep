@@ -101,6 +101,8 @@ def main(args):
     center = get_center(ligand)
     print(OEMolToSmiles(ligand), center)
     D = {}
+    D['pdbid'] = pdbid
+    D['ligandname'] = ligandname
     D['center'] = center
     write_molecule(ligand, f'{pdbid}_ligand.mol2')
     write_molecule(protein, f'{pdbid}_apo.pdb')
