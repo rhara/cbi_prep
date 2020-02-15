@@ -99,14 +99,17 @@ def main(args):
     pdbmol = read_pdb(pdb_name)
     found, ligand, protein = get_ligand_and_protein(pdbmol, ligandname)
     center = get_center(ligand)
-    print(OEMolToSmiles(ligand), center)
+    smiles = OEMolToSmiles(ligand)
     D = {}
     D['pdbid'] = pdbid
+    D['smiles'] = smiles
     D['ligandname'] = ligandname
     D['center'] = center
     write_molecule(ligand, f'{pdbid}_ligand.mol2')
     write_molecule(protein, f'{pdbid}_apo.pdb')
     pickle.dump(D, open(f'{pdbid}_info.pkl', 'wb'), protocol=4)
+    for k in D:
+        print(f'{k}: {D[k]}')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
