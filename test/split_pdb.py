@@ -108,7 +108,7 @@ def main(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--pdb', '-p', type=str, required=True)
-    parser.add_argument('--ligand', '-l', type=str, required=True)
+    parser.add_argument('pdb', type=str)
+    parser.add_argument('ligand', type=str)
     args = parser.parse_args()
     main(args)
