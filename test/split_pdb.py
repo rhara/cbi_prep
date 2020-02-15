@@ -99,7 +99,7 @@ def main(args):
     pdbmol = read_pdb(pdb_name)
     found, ligand, protein = get_ligand_and_protein(pdbmol, ligandname)
     center = get_center(ligand)
-    print(OEMolToSmiles(ligand))
+    print(OEMolToSmiles(ligand), center)
     D = {}
     D['center'] = center
     write_molecule(ligand, f'{pdbid}_ligand.mol2')
