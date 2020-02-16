@@ -20,7 +20,7 @@ diff_pairing:
 	python pairing.py --dir data_diff
 
 diff_archive:
-	tar zcvf pdb_diff.tar.gz pdb_diff/
+	tar cvf pdb_diff.tar pdb_diff/
 	tar zcvf data_diff.tar.gz data_diff/
 
 select_all: select_get_pdb select_run select_values select_pairing
@@ -39,7 +39,7 @@ select_pairing:
 	python pairing.py --dir data_select
 
 select_archive:
-	tar zcvf pdb_select.tar.gz pdb_select/
+	tar cvf pdb_select.tar pdb_select/
 	tar zcvf data_select.tar.gz data_select/
 
 clean:
