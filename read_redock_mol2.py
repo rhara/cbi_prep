@@ -1,8 +1,7 @@
-import sys
+import sys, os, argparse
 from collections import namedtuple
 from rdkit import Chem
 import numpy as np
-import argparse
 
 ELEMENTS = {'H': 1, 'C': 6, 'N': 7, 'O': 8, 'F': 9, 'P': 15, 'S': 16, 'Cl': 17, 'Br': 35, 'I': 53}
 
@@ -13,7 +12,7 @@ def get_lines_from_mol2(fname, no=1):
     lines = []
     no = 0
     count = 0
-    for line in open(sys.argv[1]):
+    for line in open(fname)
         line = line.strip()
         if line.startswith('@<TRIPOS>'):
             section = line[9:]
@@ -169,9 +168,9 @@ def main(args):
     iname = args.iname
     mol = make_rdkit_molecule_from_mol2(iname)
     smiles = Chem.MolToSmiles(mol)
-    print(smiles)
-    coords = get_coords(mol)
-    print(coords)
+    print(os.path.basename(iname), smiles)
+    #coords = get_coords(mol)
+    #print(coords)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

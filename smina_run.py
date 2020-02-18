@@ -24,15 +24,16 @@ def worker(args):
     os.system(f'tleap -s -f {tempdir}/leap_in')
     os.system(f'python make_charged_protein.py {tempdir}/{pdbid}_apo_H.pdb {tempdir}/{pdbid}_apo_ref.mol2')
     os.system(f'obabel {tempdir}/{pdbid}_apo_H_charged.mol2 -O {tempdir}/{pdbid}_apo_H_charged.pdbqt')
-    os.system(f'obabel {sdf_name} -h --partialcharge gasteiger -O {tempdir}/{pdbid}_ligand_H_charged.mol2')
-    os.system(f'obabel {tempdir}/{pdbid}_ligand_H_charged.mol2 -O {tempdir}/{pdbid}_ligand_H_charged.pdbqt')
+    os.system(f'obabel {sdf_name} -O {tempdir}/{pdbid}_ligand.pdbqt')
     os.system(f'python get_center.py {sdf_name} > {tempdir}/center')
     x, y, z = eval(open(f'{tempdir}/center', 'rt').read())
     x = round(x, 3)
     y = round(y, 3)
     z = round(z, 3)
-    os.system(f'smina -r {tempdir}/{pdbid}_apo_H_charged.pdbqt -l {tempdir}/{pdbid}_ligand_H_charged.pdbqt --center_x {x} --center_y {y} --center_z {z} --size_x 25 --size_y 25 --size_z 25 --cpu 10 --num_modes 4 -o {tempdir}/{pdbid}_redock.mol2')
-    os.system(f'python rmsd_norm.py {tempdir}/{pdbid}_ligand_H_charged.mol2 {tempdir}/{pdbid}_redock.mol2 > {tempdir}/rmsd')
+    ncpu = mp.cpu_count()
+    ncpu -= 2
+    os.system(f'smina -r {tempdir}/{pdbid}_apo_H_charged.pdbqt -l {tempdir}/{pdbid}_ligand.pdbqt --center_x {x} --center_y {y} --center_z {z} --size_x 25 --size_y 25 --size_z 25 --cpu {ncpu} --num_modes 4 -o {tempdir}/{pdbid}_redock.sdf')
+    os.system(f'python rmsd_norm.py {sdf_name} {tempdir}/{pdbid}_redock.sdf > {tempdir}/rmsd')
 
     return idir, odir, pdbid, pdb_name, sdf_name
 
