@@ -10,7 +10,7 @@ def worker(args):
     print(args)
     idir, odir, pdbid, pdb_name, sdf_name = args
     uid = uuid.uuid4().hex
-    tempdir = f'tmp/{uid}'
+    tempdir = f'{odir}/{uid}'
     os.makedirs(tempdir, exist_ok=True)
     tt_iname = f'{tempdir}/{pdbid}_apo.pdb'
     os.system(f'gunzip -c {pdb_name} > {tt_iname}')
