@@ -16,4 +16,5 @@ test:
 	smina -r $(PDB)_apo_H_charged.mol2 -l $(LIG).pdb --cpu 4 $$(python center.py $(LIG).pdb) --num_modes 4 -o $(PDB)_redock.sdf --log $(PDB)_smina.log
 
 clean:
+	rm -rf __pycache__
 	rm -f *~ *.bak *.pdbqt *.log *.pdb *.sdf *.mol2 *_tleaprc
