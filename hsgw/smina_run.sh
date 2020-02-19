@@ -12,3 +12,4 @@ tleap -s -f ${pdbid}_tleaprc
 obabel ${pdbid}_apo_H.pdb -O ${pdbid}_apo_H_nocharge.mol2 2> /dev/null
 python make_charged_protein.py ${pdbid}_apo_H_nocharge.mol2 ${pdbid}_apo_H_ref.mol2 ${pdbid}_apo_H_charged.mol2
 smina -r ${pdbid}_apo_H_charged.mol2 -l ${ligname}.pdb --cpu ${ncpu} $(python center.py ${ligname}.pdb) --num_modes ${npose} -o ${ligname}_redock.sdf --log ${pdbid}_smina.log
+python rmsd.py ${ligname}.pdb ${ligname}_redock.sdf
