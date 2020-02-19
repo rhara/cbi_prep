@@ -9,7 +9,7 @@ def main(args):
     ok = False
     pch = []
     for line in open(charge_ref, 'rt'):
-        line = line.strip()
+        line = line.rstrip()
         if line == '@<TRIPOS>ATOM':
             ok = True
             continue
@@ -17,8 +17,25 @@ def main(args):
             ok = False
             continue
         if ok:
-            it = line.split()
-            pch.append(float(it[8]))
+            it = line.strip().split()
+            try:
+                ch = float(it[8])
+            except ValueError:
+                ch = float(it[7])
+            pch.append(ch)
+
+    pos = 100000
+    for line in open(nocharge_name):
+        line = line.rstrip()
+        if line == '@<TRIPOS>ATOM':
+            ok = True
+            continue
+        if line.startswith('@') and line != '@<TRIPOS>ATOM':
+            ok = False
+            continue
+        if ok:
+            if line.rindex(' ') < pos:
+                pos = line.rindex(' ')
 
     out = open(oname, 'wt')
     ok = False
@@ -35,7 +52,7 @@ def main(args):
         if ok:
             v = pch.pop(0)
             s = f'{v:7.4f}'
-            out.write(line[:69] + s + line[76:] + '\n')
+            out.write(line[:pos+1] + s + '\n')
         else:
             out.write(line + '\n')
 
