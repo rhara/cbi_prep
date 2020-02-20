@@ -17,4 +17,5 @@ test:
 
 clean:
 	rm -rf __pycache__
-	rm -f *~ *.bak *.pdbqt *.log *.pdb *.sdf *.mol2 *_tleaprc
+	rm -f *~ *.bak *.pdbqt *.log *.pdb *.sdf *.mol2 *.pdb.gz *_tleaprc
+	rm -f *_obabellog *_smina.log *_tleaplog *_rmsd
