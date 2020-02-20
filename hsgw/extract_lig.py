@@ -1,15 +1,10 @@
-import argparse
-import gzip
+import os, argparse, gzip
 
-"""
-0         1         2         3         4         5         6
-0123456789012345678901234567890123456789012345678901234567890123456789
-HETATM10176  O8  PNM B 708     -33.466  47.734  66.394  0.97 48.08           O
-"""
 def main(args):
     pdb_name = args.pdb_name
     ligand_name = args.ligand_name
-    oname = f'{ligand_name}.pdb'
+    pdbid = os.path.basename(pdb_name)[:4]
+    oname = f'{pdbid}_{ligand_name}.pdb'
     openf = gzip.open if pdb_name.endswith('.gz') else open
 
     ligands = {}
