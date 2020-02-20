@@ -48,9 +48,9 @@ def get_rmsd(mol1, mol2):
 def main(args):
     ref_name = args.ref_name
     fit_name = args.fit_name
-    for mol1 in read_sdf(ref_name):
-        break
-    #mol1 = read_pdb(ref_name)
+    #for mol1 in read_sdf(ref_name):
+    #    break
+    mol1 = read_pdb(ref_name)
     count = 0
     for mol2 in read_sdf(fit_name):
         count += 1

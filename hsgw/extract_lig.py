@@ -1,6 +1,5 @@
 from rdkit import Chem
-import argparse
-import gzip
+import argparse, os, gzip
 import numpy as np
 
 def main(args):
