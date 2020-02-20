@@ -50,7 +50,7 @@ def main(args):
     fit_name = args.fit_name
     #for mol1 in read_sdf(ref_name):
     #    break
-    mol1 = read_pdb(ref_name)
+    mol1 = read_mol2(ref_name)
     count = 0
     for mol2 in read_sdf(fit_name):
         count += 1

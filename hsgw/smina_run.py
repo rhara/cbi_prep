@@ -34,7 +34,7 @@ def run_smina(pdbid, ligand_name, ncpu=8, num_modes=4, seed=0):
     run(f'smina -r {receptor} -l {ligand} {boxpars} --cpu {ncpu} --num_modes {num_modes} --seed 0 -o {docked} --log {log}')
 
 def get_rmsd(pdbid, ligand_name):
-    ref_mol = f'{pdbid}_{ligand_name}.pdb'
+    ref_mol = f'{pdbid}_{ligand_name}.mol2'
     fit_mol = f'{pdbid}_{ligand_name}_redock.sdf'
     out_fname = f'{pdbid}_{ligand_name}_rmsd'
     output = run(f'python rmsd.py {ref_mol} {fit_mol}', capture=True, log=out_fname)
