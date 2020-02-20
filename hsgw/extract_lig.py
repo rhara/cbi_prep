@@ -3,15 +3,11 @@ import argparse
 import gzip
 import numpy as np
 
-"""
-0         1         2         3         4         5         6
-0123456789012345678901234567890123456789012345678901234567890123456789
-HETATM10176  O8  PNM B 708     -33.466  47.734  66.394  0.97 48.08           O
-"""
 def main(args):
     pdb_name = args.pdb_name
     ligand_name = args.ligand_name
-    oname = f'{ligand_name}.pdb'
+    pdbid = os.path.basename(pdb_name)[:4]
+    oname = f'{pdbid}_{ligand_name}.pdb'
     openf = gzip.open if pdb_name.endswith('.gz') else open
 
     atomnames = set()
@@ -46,17 +42,6 @@ def main(args):
     ##print(ref_xyzs)
     ##print('\n'.join(lines))
     with open(oname, 'wt') as out:
-        #for line in ligands[chainId]:
-        #        xyz = np.array([float(line[30:38]), float(line[38:46]), float(line[46:54])])
-        #        found = False
-        #        for i in range(ref_xyzs.shape[0]):
-        #            v = xyz - ref_xyzs[i]
-        #            d2 = np.sum(v*v)
-        #            if d2 < 0.1:
-        #                found = True
-        #                break
-        #        if found:
-        #            out.write(line + '\n')
         for line in lines:
             if line.startswith('HETATM'):
                 out.write(line + '\n')
