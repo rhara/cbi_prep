@@ -4,11 +4,6 @@ from rdkit.Chem import AllChem
 import numpy as np
 import math
 
-"""
-0         1         2         3         4         5         6         7
-01234567890123456789012345678901234567890123456789012345678901234567890123456789
-HETATM10147  C7  PNM A1007      25.104  27.308  86.289  1.00 42.92           C
-"""
 
 ATOMS = dict(H=1, C=6, N=7, O=8, F=9, P=15, S=16, CL=17, BR=35, I=53)
 
