@@ -5,4 +5,7 @@
 /*.tar.gz
 /*_tleaprc
 /*.log
+/*_tleaplog
+/*_obabellog
+/*_rmsd
 /LOG
