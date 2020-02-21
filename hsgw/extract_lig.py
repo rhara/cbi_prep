@@ -15,7 +15,7 @@ def main(args):
         line = line.rstrip()
         try:
             pdb_tag = line[:6]
-            pdb_ligname = line[17:20]
+            pdb_ligname = line[17:20].strip()
             pdb_chainId = line[21]
             pdb_atomname = line[13:16].strip()
         except:
