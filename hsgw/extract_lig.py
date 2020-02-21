@@ -1,5 +1,5 @@
 from rdkit import Chem
-import argparse, os, gzip
+import argparse, os, gzip, sys
 import numpy as np
 
 def main(args):
@@ -11,6 +11,7 @@ def main(args):
 
     atomnames = set()
     ligands = {}
+    found = False
     for line in openf(pdb_name, 'rt'):
         line = line.rstrip()
         try:
@@ -21,33 +22,44 @@ def main(args):
         except:
             continue
         if pdb_tag == 'HETATM' and pdb_ligname == ligand_name:
+            found = True
             if pdb_atomname in atomnames:
                 continue
             if pdb_chainId not in ligands:
                 ligands[pdb_chainId] = []
             ligands[pdb_chainId].append(line)
             atomnames.add(pdb_atomname)
+    if not found:
+        return -1
 
     chainIds = sorted(ligands)
     chainId = chainIds[0]
+
     mol = Chem.MolFromPDBBlock('\n'.join(ligands[chainId]))
-    print(Chem.MolToSmiles(mol), ligand_name)
+    if mol is None:
+        return -1
+
+    print(Chem.MolToSmiles(mol), ligand_name, file=sys.stderr)
+
+    """
+    if multiple molecule is found in the set, take the largest one
+    """
     mols = list(Chem.GetMolFrags(mol, asMols=True))
     if 1 < len(mols):
         mols.sort(key=lambda m: m.GetNumAtoms(), reverse=True)
     mol = mols[0]
+
     lines = Chem.MolToPDBBlock(mol).split('\n')
-    #ref_xyzs = np.array([(float(line[30:38]), float(line[38:46]), float(line[46:54])) for line in lines if line.startswith('HETATM')])
-    ##print(ref_xyzs)
-    ##print('\n'.join(lines))
     with open(oname, 'wt') as out:
         for line in lines:
             if line.startswith('HETATM'):
                 out.write(line + '\n')
+
+    return 0
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('pdb_name', type=str)
     parser.add_argument('ligand_name', type=str)
     args = parser.parse_args()
-    main(args)
+    sys.exit(main(args))
