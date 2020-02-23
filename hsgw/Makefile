@@ -17,4 +17,4 @@ test:
 
 clean:
 	rm -f *~ *.bak *.pdbqt *.log *.pdb *.sdf *.mol2 *_tleaprc
-	rm *_tleaplog *_obabellog *_rmsd
+	rm -f *_tleaplog *_obabellog *_rmsd

@@ -1,6 +1,8 @@
 from rdkit import Chem
+from rdkit.Chem import AllChem
 import argparse, os, gzip, sys
 import numpy as np
+import pandas as pd
 
 def main(args):
     pdb_name = args.pdb_name

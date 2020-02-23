@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import argparse, sys
 import subprocess as sp
 from os import cpu_count

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import argparse, gzip, os
 
 def main(args):
