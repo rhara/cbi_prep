@@ -1,5 +1,5 @@
 from rdkit import Chem
-from rdkit.Chem import AllChem
+from rdkit.Chem import MolStandardize
 import argparse, os, gzip, sys
 import numpy as np
 import pandas as pd
@@ -46,10 +46,14 @@ def main(args):
     """
     if multiple molecule is found in the set, take the largest one
     """
-    mols = list(Chem.GetMolFrags(mol, asMols=True))
-    if 1 < len(mols):
-        mols.sort(key=lambda m: m.GetNumAtoms(), reverse=True)
-    mol = mols[0]
+    normalizer = MolStandardize.normalize.Normalizer()
+    _mol = normalizer.normalize(mol)
+    lfc = MolStandardize.fragment.LargestFragmentChooser()
+    mol = lfc.choose(_mol)
+    # mols = list(Chem.GetMolFrags(mol, asMols=True))
+    # if 1 < len(mols):
+    #     mols.sort(key=lambda m: m.GetNumAtoms(), reverse=True)
+    # mol = mols[0]
 
     lines = Chem.MolToPDBBlock(mol).split('\n')
     with open(oname, 'wt') as out:
