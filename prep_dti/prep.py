@@ -1,39 +1,48 @@
 #!/usr/bin/env python
 
-import os, sys, argparse
-sys.path.insert(0, os.getcwd())
+import argparse
 import prody
-from cbilib.catalog import get_catalog
-import multiprocessing as mp
-
-def worker(args):
-    count, pdbid = args
-    prody.fetchPDB(pdbid)
-    return count, pdbid
+from cbilib import prody_util, ob_util, rdkit_util
 
 def main(args):
-    csv_name = args.csv_name
-    odir = args.odir
-    df = get_catalog(csv_name)
-    print(df)
+    pdbid = args.pdbid
+    ligname = args.ligname
+    ligand_thres = args.ligand_thres
+    pocket_thres = args.pocket_thres
 
-    os.makedirs(odir, exist_ok=True)
-    os.chdir(odir)
+    prody.fetchPDB(pdbid)
+    iname = f'{pdbid}.pdb.gz'
+    protein = prody.parsePDB(iname, model=1)
+    apo = protein.select('protein and not water and not hydrogen')
 
-    def gen():
-        count = 0
-        for i in df.index:
-            count += 1
-            pdbid = df.loc[i, 'pdbid']
-            yield count, pdbid
+    ligand = protein.select(f'hetero and resname {ligname} and not hydrogen')
+    ligand = prody_util.ligand_pick_one(ligand)
+    ligand = ligand.toAtomGroup()
+    natoms = ligand.numAtoms()
+    print('ligand.numAtoms =', natoms)
 
-    pool = mp.Pool(mp.cpu_count())
-    for count, pdbid in pool.imap_unordered(worker, gen()):
-        print(f'{count:5} {pdbid}')
+    apo = prody_util.apo_near_ligand(apo, ligand, thres=ligand_thres)
+    apo = apo.toAtomGroup()
+
+    pocket = prody_util.make_pocket(apo, ligand, thres=pocket_thres)
+    pocket = pocket.toAtomGroup()
+    nres = pocket.numResidues()
+    print('pocket.numResidue =', nres)
+
+    prody.writePDB(f'{pdbid}.apo.pdb.gz', apo)
+    prody.writePDB(f'{pdbid}_{ligname}.pdb', ligand)
+    prody.writePDB(f'{pdbid}.pocket_{pocket_thres}.pdb', pocket)
+
+    smiles = ob_util.pdb_to_smistring(f'{pdbid}_{ligname}.pdb')
+    print('Ligand smiles =', smiles)
+    ob_util.pdb_to_sdfile(f'{pdbid}_{ligname}.pdb', f'{pdbid}_{ligname}.sdf', title=f'{pdbid}_{ligname}')
+    rdkit_util.make_pair(f'{pdbid}_{ligname}.sdf', f'{pdbid}.pocket_{pocket_thres}.pdb', f'{pdbid}.pair_{pocket_thres}.pkl')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('csv_name', type=str)
-    parser.add_argument('odir', type=str)
+    parser.add_argument('pdbid', type=str)
+    parser.add_argument('ligname', type=str)
+    parser.add_argument('--ligand-thres', type=float, default=5.0)
+    parser.add_argument('--pocket-thres', type=float, default=5.0)
     args = parser.parse_args()
     main(args)
