@@ -1,8 +1,12 @@
+.*
 __pycache__/
 /*.tar.gz
 /*.tar
 /*.log
-/pdb_diff/
-/pdb_select/
-/data_diff/
-/data_select/
+/data
+/rmsd
+/docked.sdf
+/data_*
+/pdb_*
+/tmp/
+/hsgw.1/
