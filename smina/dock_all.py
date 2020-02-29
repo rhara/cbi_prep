@@ -102,7 +102,10 @@ def main(args):
         print(count, protein_iname, ligand_iname)
         print('#'*100)
         args = (protein_iname, ligand_iname)
-        worker(args)
+        try:
+            worker(args)
+        except:
+            continue
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
