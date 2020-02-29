@@ -4,19 +4,6 @@ import os, gzip, uuid, argparse, shutil
 import openbabel as ob
 import subprocess as sp
 
-parser = argparse.ArgumentParser()
-parser.add_argument('protein_iname', type=str)
-parser.add_argument('ligand_iname', type=str)
-args = parser.parse_args()
-
-uid = uuid.uuid4().hex
-print(uid)
-
-THISDIR = os.path.abspath(os.path.dirname(__file__))
-
-os.makedirs(uid, mode=0o775)
-textfs = open(f'{uid}/info.txt', 'wt')
-
 def log(cont):
     textfs.write(cont)
 
@@ -65,20 +52,42 @@ def retrieve(uid):
     sp.call(f'cp -av {uid}/tleap.log ./', shell=True)
     sp.call(f'cp -av {uid}/rmsd ./', shell=True)
 
-protein_iname = args.protein_iname
-ligand_iname = args.ligand_iname
 
-assert protein_iname.endswith('.pdb') or protein_iname.endswith('.pdb.gz')
-assert ligand_iname.endswith('.sdf')
+THISDIR = None
+textfs = None
 
-log(f'uid={uid}\n')
-log(f'protein_iname={protein_iname}\n')
-log(f'ligand_iname={ligand_iname}\n')
+def main(args):
+    global THISDIR, textfs
 
-prep_protein(uid, protein_iname)
-prep_ligand(uid, ligand_iname)
-tleap(uid)
-smina(uid)
-rmsd(uid)
-retrieve(uid)
-shutil.rmtree(uid)
+    protein_iname = args.protein_iname
+    ligand_iname = args.ligand_iname
+
+    assert protein_iname.endswith('.pdb') or protein_iname.endswith('.pdb.gz')
+    assert ligand_iname.endswith('.sdf')
+
+    uid = uuid.uuid4().hex
+    print(uid)
+
+    THISDIR = os.path.abspath(os.path.dirname(__file__))
+
+    os.makedirs(uid, mode=0o775)
+    textfs = open(f'{uid}/info.txt', 'wt')
+
+    log(f'uid={uid}\n')
+    log(f'protein_iname={protein_iname}\n')
+    log(f'ligand_iname={ligand_iname}\n')
+
+    prep_protein(uid, protein_iname)
+    prep_ligand(uid, ligand_iname)
+    tleap(uid)
+    smina(uid)
+    rmsd(uid)
+    retrieve(uid)
+    shutil.rmtree(uid)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('protein_iname', type=str)
+    parser.add_argument('ligand_iname', type=str)
+    args = parser.parse_args()
+    main(args)
