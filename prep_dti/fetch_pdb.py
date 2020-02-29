@@ -12,28 +12,28 @@ def worker(args):
     return count, pdbid
 
 def main(args):
-    csv_name = args.csv
-    out_name = args.out
+    csv_name = args.csv_name
+    odir = args.odir
     df = get_catalog(csv_name)
     print(df)
 
-    os.makedirs(out_name, exist_ok=True)
-    os.chdir(out_name)
+    os.makedirs(odir, exist_ok=True)
+    os.chdir(odir)
 
     def gen():
         count = 0
         for i in df.index:
             count += 1
-            pdbid = df.loc[i, 'PDB_code']
+            pdbid = df.loc[i, 'pdbid']
             yield count, pdbid
 
     pool = mp.Pool(mp.cpu_count())
     for count, pdbid in pool.imap_unordered(worker, gen()):
-        print(count, pdbid)
+        print(f'{count:5} {pdbid}')
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--csv', '-i', type=str, required=True)
-    parser.add_argument('--out', '-o', type=str, required=True)
+    parser.add_argument('csv_name', type=str)
+    parser.add_argument('odir', type=str)
     args = parser.parse_args()
     main(args)
