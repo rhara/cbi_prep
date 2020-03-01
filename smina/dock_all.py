@@ -37,7 +37,8 @@ def smina(uid, ncpu=None, num_modes=4, seed=0):
     oname = f'{uid}/docked.sdf'
     logname = f'{uid}/smina.log'
     boxpars = sp.check_output(f'python {THISDIR}/center.py {ligand}', shell=True).decode().strip()
-    sp.call(f'smina -r {receptor} -l {ligand} {boxpars} --cpu {ncpu} --num_modes {num_modes} --seed {seed} -o {oname} --log {logname} > /dev/null', shell=True)
+    command = f'smina -r {receptor} -l {ligand} {boxpars} --cpu {ncpu} --num_modes {num_modes} --seed {seed} -o {oname} --log {logname}'
+    sp.call(f'{command} > /dev/null', shell=True)
 
 def rmsd(uid):
     global THISDIR
@@ -131,7 +132,7 @@ def main(args):
             args = (count, protein_iname, ligand_iname)
             yield args
 
-    pool = mp.Pool(4)
+    pool = mp.Pool(1)
     for ret in pool.imap_unordered(worker, gen()):
         pass
 
