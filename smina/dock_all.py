@@ -83,9 +83,11 @@ def main(args):
 
     csv_iname = args.csv_iname
     idir = args.idir
-
+    if args.label:
+        q_labels = args.label.split(':')
+    else:
+        q_labels = None
     cat = catalog.Catalog(csv_iname)
-    print(cat.df)
 
     THISDIR = os.path.abspath(os.path.dirname(__file__))
     DATADIR = idir
@@ -96,6 +98,15 @@ def main(args):
             r = cat.df.loc[i]
             pdbid = r['pdbid']
             ligname = r['ligname']
+            labels = r['label'].split(':')
+            if q_labels:
+                ok = True
+                for l in labels:
+                    if l not in q_labels:
+                        ok = False
+                        break
+                if not ok:
+                    continue
             protein_iname = f'{idir}/{pdbid}/{pdbid}.apo.pdb.gz'
             ligand_iname = f'{idir}/{pdbid}/{pdbid}_{ligname}.sdf'
             if not (os.path.exists(protein_iname) and os.path.exists(ligand_iname)):
@@ -114,5 +125,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('csv_iname', type=str)
     parser.add_argument('idir', type=str)
+    parser.add_argument('--label', '-l', type=str)
     args = parser.parse_args()
     main(args)
