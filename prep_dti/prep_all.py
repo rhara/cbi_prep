@@ -30,13 +30,13 @@ def worker(args):
     ### Temporarily make ligand picked by resname
     ligand = protein.select(f'hetero and resname {ligname} and not hydrogen')
     if not test(ligand, 'lig', ret): return ret
-    natoms = ligand.numAtoms()
-    ret['natoms'] = natoms
 
     ### Multiple component will be parsed for one to pick the biggest
     ligand = prody_util.ligand_pick_one(ligand)
     if not test(ligand, 'lig', ret): return ret
     ligand = ligand.toAtomGroup()
+    natoms = ligand.numAtoms()
+    ret['natoms'] = natoms
 
     ### Chains limited to near ligand
     apo = prody_util.apo_near_ligand(apo, ligand, thres=ligand_thres)
