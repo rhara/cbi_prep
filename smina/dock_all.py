@@ -37,7 +37,7 @@ def smina(uid, ncpu=None, num_modes=4, seed=0):
     oname = f'{uid}/docked.sdf'
     logname = f'{uid}/smina.log'
     boxpars = sp.check_output(f'python {THISDIR}/center.py {ligand}', shell=True).decode().strip()
-    sp.call(f'smina -r {receptor} -l {ligand} {boxpars} --cpu {ncpu} --num_modes {num_modes} --seed {seed} -o {oname} --log {logname}', shell=True)
+    sp.call(f'smina -r {receptor} -l {ligand} {boxpars} --cpu {ncpu} --num_modes {num_modes} --seed {seed} -o {oname} --log {logname} > /dev/null', shell=True)
 
 def rmsd(uid):
     global THISDIR
@@ -45,8 +45,12 @@ def rmsd(uid):
     fit = f'{uid}/docked.sdf'
     oname = f'{uid}/rmsd'
     cont = sp.check_output(f'python {THISDIR}/rmsd.py {ref} {fit}', shell=True).decode().strip()
-    print(cont)
+    rmsds = []
+    for line in cont.split('\n'):
+        it = line.split()
+        rmsds.append((int(it[0]), round(float(it[1]), 3)))
     open(oname, 'wt').write(cont + '\n')
+    return rmsds
 
 def retrieve(uid, pdbid):
     global DATADIR
@@ -61,11 +65,11 @@ DATADIR = None
 def worker(args):
     global THISDIR
 
-    print('#'*100)
-    print(args)
-    print('#'*100)
-
     count, protein_iname, ligand_iname = args
+
+    print(count, protein_iname, ligand_iname, '[start]')
+
+    pdbid = os.path.basename(protein_iname)[:4]
 
     uid = uuid.uuid4().hex
     os.makedirs(uid, mode=0o775, exist_ok=True)
@@ -74,14 +78,19 @@ def worker(args):
         prep_ligand(uid, ligand_iname)
         tleap(uid)
         smina(uid, ncpu=os.cpu_count())
-        rmsd(uid)
+        rmsds = rmsd(uid)
         pdbid = os.path.basename(protein_iname)[:4]
         retrieve(uid, pdbid)
         success = True
     except:
         success = False
+        rmsds = None
     shutil.rmtree(uid)
-    return success, count, protein_iname, ligand_iname
+    print(success, count, pdbid, '[done]')
+    if rmsds:
+        for i, v in rmsds:
+            print(count, pdbid, '[rmsd]', i, v)
+    return success, count
 
 def main(args):
     global THISDIR, DATADIR
@@ -122,10 +131,9 @@ def main(args):
             args = (count, protein_iname, ligand_iname)
             yield args
 
-    pool = mp.Pool(1)
+    pool = mp.Pool(4)
     for ret in pool.imap_unordered(worker, gen()):
-        success, count, _, _ = ret
-        print(count, success)
+        pass
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
