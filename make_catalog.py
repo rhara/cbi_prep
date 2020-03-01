@@ -15,7 +15,7 @@ def get_index_data(iname, kinases, selects, src):
     AMINO_ACIDS = 'ALA ARG ASN ASP CYS GLN GLU GLY HIS ILE LEU LYS MET PHE PRO SER THR TRP TYR VAL'.split()
     UNIT = {'M': 1, 'mM': 1e-3, 'uM': 1e-6, 'nM': 1e-9, 'pM': 1e-12, 'fM': 1e-15}
     value_pat = re.compile('^(IC50|Ki|Kd)(=|>|>=|<|<=|~)([.0-9]+)(M|mM|uM|nM|pM|fM)$')
-    Data = namedtuple('Data', ['pdbid', 'ligname', 'measure', 'pvalue', 'src', 'label'])
+    Data = namedtuple('Data', ['pdbid', 'ligname', 'measure', 'pvalue', 'label'])
     ligname_pat = re.compile('^[A-Z0-9]{3}$')
 
     data = {}
@@ -39,13 +39,13 @@ def get_index_data(iname, kinases, selects, src):
         unit = m.group(4)
         value *= UNIT[unit]
         pvalue = round(-math.log10(value), 3)
-        labels = []
+        labels = [src]
         if pdbid in selects:
             labels.append('select')
         if pdbid in kinases:
             labels.append('kinase')
         label = ':'.join(labels)
-        data[pdbid] = Data(pdbid, ligname, measure, pvalue, src, label)
+        data[pdbid] = Data(pdbid, ligname, measure, pvalue, label)
     return data
 
 def main():
