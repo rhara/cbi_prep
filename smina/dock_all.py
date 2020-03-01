@@ -61,20 +61,22 @@ DATADIR = None
 def worker(args):
     global THISDIR
 
-    protein_iname, ligand_iname = args
+    count, protein_iname, ligand_iname = args
 
-    print('>', protein_iname)
-    print('>', ligand_iname)
-    uid = uuid.uuid4().hex
-    os.makedirs(uid, mode=0o775)
-    prep_protein(uid, protein_iname)
-    prep_ligand(uid, ligand_iname)
-    tleap(uid)
-    smina(uid)
-    rmsd(uid)
-    pdbid = os.path.basename(protein_iname)[:4]
-    retrieve(uid, pdbid)
-    shutil.rmtree(uid)
+    try:
+        uid = uuid.uuid4().hex
+        os.makedirs(uid, mode=0o775)
+        prep_protein(uid, protein_iname)
+        prep_ligand(uid, ligand_iname)
+        tleap(uid)
+        smina(uid, ncpu=4)
+        rmsd(uid)
+        pdbid = os.path.basename(protein_iname)[:4]
+        retrieve(uid, pdbid)
+        shutil.rmtree(uid)
+        return True, count, protein_iname, ligand_iname
+    except:
+        return False, count, protein_iname, ligand_iname
 
 def main(args):
     global THISDIR, DATADIR
@@ -88,24 +90,23 @@ def main(args):
     THISDIR = os.path.abspath(os.path.dirname(__file__))
     DATADIR = idir
 
-    count = 0
-    for i in cat.df.index:
-        r = cat.df.loc[i]
-        pdbid = r['pdbid']
-        ligname = r['ligname']
-        protein_iname = f'{idir}/{pdbid}/{pdbid}.apo.pdb.gz'
-        ligand_iname = f'{idir}/{pdbid}/{pdbid}_{ligname}.sdf'
-        if not (os.path.exists(protein_iname) and os.path.exists(ligand_iname)):
-            continue
-        count += 1
-        print('#'*100)
-        print(count, protein_iname, ligand_iname)
-        print('#'*100)
-        args = (protein_iname, ligand_iname)
-        try:
-            worker(args)
-        except:
-            continue
+    def gen():
+        count = 0
+        for i in cat.df.index:
+            r = cat.df.loc[i]
+            pdbid = r['pdbid']
+            ligname = r['ligname']
+            protein_iname = f'{idir}/{pdbid}/{pdbid}.apo.pdb.gz'
+            ligand_iname = f'{idir}/{pdbid}/{pdbid}_{ligname}.sdf'
+            if not (os.path.exists(protein_iname) and os.path.exists(ligand_iname)):
+                continue
+            count += 1
+            args = (count, protein_iname, ligand_iname)
+            yield args
+
+    pool = mp.Pool(max(mp.cpu_count()-2, 1))
+    for ret in pool.imap_unordered(worker, gen()):
+        print(ret)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
