@@ -101,6 +101,8 @@ def main(args):
             if not (os.path.exists(protein_iname) and os.path.exists(ligand_iname)):
                 continue
             count += 1
+            if os.path.exists(f'{idir}/{pdbid}/rmsd'):
+                continue
             args = (count, protein_iname, ligand_iname)
             yield args
 
