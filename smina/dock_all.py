@@ -78,7 +78,7 @@ def worker(args):
         prep_protein(uid, protein_iname)
         prep_ligand(uid, ligand_iname)
         tleap(uid)
-        smina(uid, ncpu=os.cpu_count())
+        smina(uid, ncpu=1)
         rmsds = rmsd(uid)
         pdbid = os.path.basename(protein_iname)[:4]
         retrieve(uid, pdbid)
@@ -132,7 +132,7 @@ def main(args):
             args = (count, protein_iname, ligand_iname)
             yield args
 
-    pool = mp.Pool(1)
+    pool = mp.Pool(mp.cpu_count())
     for ret in pool.imap_unordered(worker, gen()):
         pass
 
