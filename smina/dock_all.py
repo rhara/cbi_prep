@@ -69,7 +69,7 @@ def worker(args):
         prep_protein(uid, protein_iname)
         prep_ligand(uid, ligand_iname)
         tleap(uid)
-        smina(uid, ncpu=4)
+        smina(uid, ncpu=os.cpu_count())
         rmsd(uid)
         pdbid = os.path.basename(protein_iname)[:4]
         retrieve(uid, pdbid)
@@ -101,8 +101,8 @@ def main(args):
             labels = r['label'].split(':')
             if q_labels:
                 ok = True
-                for l in labels:
-                    if l not in q_labels:
+                for q in q_labels:
+                    if q not in labels:
                         ok = False
                         break
                 if not ok:
@@ -117,7 +117,7 @@ def main(args):
             args = (count, protein_iname, ligand_iname)
             yield args
 
-    pool = mp.Pool(max(mp.cpu_count()-2, 1))
+    pool = mp.Pool(1)
     for ret in pool.imap_unordered(worker, gen()):
         print(ret)
 
