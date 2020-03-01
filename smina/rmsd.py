@@ -8,7 +8,7 @@ import math
 from rdkit.Chem import MolStandardize
 
 
-ATOMS = dict(H=1, C=6, N=7, O=8, F=9, P=15, S=16, CL=17, SE=34, BR=35, I=53)
+ATOMS = dict(H=1, B=5, C=6, N=7, O=8, F=9, SI=14, P=15, S=16, CL=17, SE=34, BR=35, I=53)
 
 """
 normalizer = MolStandardize.normalize.Normalizer()
