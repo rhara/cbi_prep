@@ -12,6 +12,7 @@ def get_index_data(iname, kinases, src):
     UNIT = {'M': 1, 'mM': 1e-3, 'uM': 1e-6, 'nM': 1e-9, 'pM': 1e-12, 'fM': 1e-15}
     value_pat = re.compile('^(IC50|Ki|Kd)(=|>|>=|<|<=|~)([.0-9]+)(M|mM|uM|nM|pM|fM)$')
     Data = namedtuple('Data', ['pdbid', 'ligname', 'measure', 'pvalue', 'src', 'label'])
+    ligname_pat = re.compile('^[A-Z0-9]{3}$')
 
     data = {}
     for line in open(iname, 'rt'):
@@ -23,6 +24,9 @@ def get_index_data(iname, kinases, src):
         if len(ligname) != 3 or ligname.startswith('_'):
             continue
         if ligname in AMINO_ACIDS:
+            continue
+        m = ligname_pat.match(ligname)
+        if not m:
             continue
         m = value_pat.match(value)
         assert m
