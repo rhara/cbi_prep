@@ -25,7 +25,7 @@ def tleap(uid):
     cont = open(THISDIR + '/tleaprc.template', 'rt').read()
     cont = cont.replace('{uid}', uid)
     open(f'{uid}/tleaprc', 'wt').write(cont)
-    sp.call(f'tleap -s -f {uid}/tleaprc', shell=True)
+    sp.call(f'tleap -s -f {uid}/tleaprc > /dev/null 2>&1', shell=True)
     sp.call(f'obabel {uid}/protein.mol2 -O {uid}/protein_charged.mol2 > /dev/null 2>&1', shell=True)
 
 def smina(uid, ncpu=None, num_modes=4, seed=0):
@@ -50,9 +50,9 @@ def rmsd(uid):
 
 def retrieve(uid, pdbid):
     global DATADIR
-    sp.call(f'cp -av {uid}/smina.log {DATADIR}/{pdbid}/smina.log', shell=True)
+    sp.call(f'cp -a {uid}/smina.log {DATADIR}/{pdbid}/smina.log', shell=True)
     sp.call(f'cp -av {uid}/docked.sdf {DATADIR}/{pdbid}/docked.sdf', shell=True)
-    sp.call(f'cp -av {uid}/tleap.log {DATADIR}/{pdbid}/tleap.log', shell=True)
+    sp.call(f'cp -a {uid}/tleap.log {DATADIR}/{pdbid}/tleap.log', shell=True)
     sp.call(f'cp -av {uid}/rmsd {DATADIR}/{pdbid}/rmsd', shell=True)
 
 THISDIR = None
@@ -61,11 +61,15 @@ DATADIR = None
 def worker(args):
     global THISDIR
 
+    print('#'*100)
+    print(args)
+    print('#'*100)
+
     count, protein_iname, ligand_iname = args
 
+    uid = uuid.uuid4().hex
+    os.makedirs(uid, mode=0o775, exist_ok=True)
     try:
-        uid = uuid.uuid4().hex
-        os.makedirs(uid, mode=0o775)
         prep_protein(uid, protein_iname)
         prep_ligand(uid, ligand_iname)
         tleap(uid)
@@ -73,10 +77,11 @@ def worker(args):
         rmsd(uid)
         pdbid = os.path.basename(protein_iname)[:4]
         retrieve(uid, pdbid)
-        shutil.rmtree(uid)
-        return True, count, protein_iname, ligand_iname
+        success = True
     except:
-        return False, count, protein_iname, ligand_iname
+        success = False
+    shutil.rmtree(uid)
+    return success, count, protein_iname, ligand_iname
 
 def main(args):
     global THISDIR, DATADIR
@@ -119,7 +124,8 @@ def main(args):
 
     pool = mp.Pool(1)
     for ret in pool.imap_unordered(worker, gen()):
-        print(ret)
+        success, count, _, _ = ret
+        print(count, success)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
