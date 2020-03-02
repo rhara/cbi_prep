@@ -7,44 +7,46 @@ import multiprocessing as mp
 from cbilib import catalog
 
 def prep_protein(uid, protein_iname):
-    if protein_iname.endswith('.gz'):
-        openf = gzip.open
-    else:
-        openf = open
+    tmpdir = f'tmp/{uid}.tmpdir'
+    openf = gzip.open if protein_iname.endswith('.gz') else open
     protein_cont = openf(protein_iname, 'rt').read()
-    protein_oname = f'{uid}/protein.pdb'
+    protein_oname = f'{tmpdir}/protein.pdb'
     open(protein_oname, 'wt').write(protein_cont)
 
 def prep_ligand(uid, ligand_iname):
+    tmpdir = f'tmp/{uid}.tmpdir'
     ligand_cont = open(ligand_iname, 'rt').read()
-    ligand_oname = f'{uid}/ligand.sdf'
+    ligand_oname = f'{tmpdir}/ligand.sdf'
     open(ligand_oname, 'wt').write(ligand_cont)
 
 def tleap(uid):
     global THISDIR
+    tmpdir = f'tmp/{uid}.tmpdir'
     cont = open(THISDIR + '/tleaprc.template', 'rt').read()
-    cont = cont.replace('{uid}', uid)
-    open(f'{uid}/tleaprc', 'wt').write(cont)
-    sp.call(f'tleap -s -f {uid}/tleaprc > /dev/null 2>&1', shell=True)
-    sp.call(f'obabel {uid}/protein.mol2 -O {uid}/protein_charged.mol2 > /dev/null 2>&1', shell=True)
+    cont = cont.replace('{{tmpdir}}', tmpdir)
+    open(f'{tmpdir}/tleaprc', 'wt').write(cont)
+    sp.call(f'tleap -s -f {tmpdir}/tleaprc > /dev/null 2>&1', shell=True)
+    sp.call(f'obabel {tmpdir}/protein.mol2 -O {tmpdir}/protein_charged.mol2 > /dev/null 2>&1', shell=True)
 
 def smina(uid, ncpu=None, num_modes=4, seed=0):
     global THISDIR
+    tmpdir = f'tmp/{uid}.tmpdir'
     if ncpu is None:
         ncpu = os.cpu_count()
-    receptor = f'{uid}/protein_charged.mol2'
-    ligand = f'{uid}/ligand.sdf'
-    oname = f'{uid}/docked.sdf'
-    logname = f'{uid}/smina.log'
+    receptor = f'{tmpdir}/protein_charged.mol2'
+    ligand = f'{tmpdir}/ligand.sdf'
+    oname = f'{tmpdir}/docked.sdf'
+    logname = f'{tmpdir}/smina.log'
     boxpars = sp.check_output(f'python {THISDIR}/center.py {ligand}', shell=True).decode().strip()
     command = f'smina -r {receptor} -l {ligand} {boxpars} --cpu {ncpu} --num_modes {num_modes} --seed {seed} -o {oname} --log {logname}'
     sp.call(f'{command} > /dev/null', shell=True)
 
 def rmsd(uid):
     global THISDIR
-    ref = f'{uid}/ligand.sdf'
-    fit = f'{uid}/docked.sdf'
-    oname = f'{uid}/rmsd'
+    tmpdir = f'tmp/{uid}.tmpdir'
+    ref = f'{tmpdir}/ligand.sdf'
+    fit = f'{tmpdir}/docked.sdf'
+    oname = f'{tmpdir}/rmsd'
     cont = sp.check_output(f'python {THISDIR}/rmsd.py {ref} {fit}', shell=True).decode().strip()
     rmsds = []
     for line in cont.split('\n'):
@@ -55,10 +57,11 @@ def rmsd(uid):
 
 def retrieve(uid, pdbid):
     global DATADIR
-    sp.call(f'cp -a {uid}/smina.log {DATADIR}/{pdbid}/smina.log', shell=True)
-    sp.call(f'cp -av {uid}/docked.sdf {DATADIR}/{pdbid}/docked.sdf', shell=True)
-    sp.call(f'cp -a {uid}/tleap.log {DATADIR}/{pdbid}/tleap.log', shell=True)
-    sp.call(f'cp -av {uid}/rmsd {DATADIR}/{pdbid}/rmsd', shell=True)
+    tmpdir = f'tmp/{uid}.tmpdir'
+    sp.call(f'cp -a {tmpdir}/smina.log {DATADIR}/{pdbid}/smina.log', shell=True)
+    sp.call(f'cp -av {tmpdir}/docked.sdf {DATADIR}/{pdbid}/docked.sdf', shell=True)
+    sp.call(f'cp -a {tmpdir}/tleap.log {DATADIR}/{pdbid}/tleap.log', shell=True)
+    sp.call(f'cp -av {tmpdir}/rmsd {DATADIR}/{pdbid}/rmsd', shell=True)
 
 THISDIR = None
 DATADIR = None
@@ -73,7 +76,8 @@ def worker(args):
     pdbid = os.path.basename(protein_iname)[:4]
 
     uid = uuid.uuid4().hex
-    os.makedirs(uid, mode=0o775, exist_ok=True)
+    tmpdir = f'tmp/{uid}.tmpdir'
+    os.makedirs(tmpdir, mode=0o775, exist_ok=True)
     try:
         prep_protein(uid, protein_iname)
         prep_ligand(uid, ligand_iname)
@@ -86,7 +90,7 @@ def worker(args):
     except:
         success = False
         rmsds = None
-    shutil.rmtree(uid)
+    shutil.rmtree(tmpdir)
     print(success, count, pdbid, '[done]')
     if rmsds:
         for i, v in rmsds:
@@ -96,6 +100,7 @@ def worker(args):
 def main(args):
     global THISDIR, DATADIR
 
+    os.makedirs('tmp', mode=0o755, exist_ok=True)
     csv_iname = args.csv_iname
     idir = args.idir
     if args.label:
